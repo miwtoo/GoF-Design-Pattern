@@ -1,4 +1,8 @@
+import { FixedPackageCalculator } from './packages/fixedPackageCalculator';
+import { HourFlexPackageCalculator } from './packages/hourFlexCalculator';
+import { MonthlyCalculator } from './packages/monthlyCalculator';
 import { PackageType } from './packages/packageType';
+import { UnknowPackageCalculator } from './packages/unknowPackageCalculator';
 
 export class Billing {
   private vatRate = 7.0;
@@ -11,13 +15,23 @@ export class Billing {
   }
 
   public monthlyBill(): number {
-    var total = 0.0;
-    if (this.packageType === PackageType.FIXED) {
-      total = 500;
-    } else if (this.packageType === PackageType.HOUR_FLEX) {
-      total = this.totalHours * 50;
-    } else total = 0;
+    var total = this.package(this.packageType).calculate(this.totalHours);
 
+    return this.totalWithVat(total);
+  }
+
+  private package( packageType: string ) : MonthlyCalculator {
+    switch (packageType) {
+      case PackageType.FIXED:
+        return new FixedPackageCalculator();
+      case PackageType.HOUR_FLEX:
+        return new HourFlexPackageCalculator();
+      default:
+        return new UnknowPackageCalculator();
+    }
+  }
+
+  private totalWithVat(total: number): number {
     return total + (total * this.vatRate) / 100;
   }
 }
